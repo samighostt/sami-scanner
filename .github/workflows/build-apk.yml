@@ -30,18 +30,18 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install Buildozer and pinned python-for-android
+      - name: Install Buildozer, Cython and dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install "cython<3.4"
+          python -m pip install --upgrade pip setuptools wheel
+          pip install "cython==0.29.36"
           pip install buildozer
-          pip install "python-for-android==2026.05.09"
+          pip install "python-for-android==2024.1.2"
 
       - name: Verify versions
         run: |
           python --version
+          cython --version
           buildozer --version
-          python -m pythonforandroid.toolchain --version || true
 
       - name: Clean previous Buildozer files
         run: |
@@ -49,6 +49,9 @@ jobs:
           rm -rf bin
 
       - name: Build APK
+        env:
+          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+          APP_PYTHON_VERSION: "3.11"
         run: |
           buildozer android debug
 
