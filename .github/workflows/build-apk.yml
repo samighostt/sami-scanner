@@ -1,61 +1,61 @@
 name: Build SAMI APK
 
 on:
-push:
-branches:
-- main
-workflow_dispatch:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-build:
-runs-on: ubuntu-24.04
+  build:
+    runs-on: ubuntu-24.04
 
-steps:
-  - name: Checkout
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  - name: Install system dependencies
-    run: |
-      sudo apt update
-      sudo apt install -y \
-        git zip unzip openjdk-17-jdk \
-        python3-pip python3-venv \
-        autoconf libtool pkg-config \
-        zlib1g-dev libncurses5-dev libtinfo6 \
-        cmake libffi-dev libssl-dev automake \
-        autopoint gettext libltdl-dev
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            git zip unzip openjdk-17-jdk \
+            python3-pip python3-venv \
+            autoconf libtool pkg-config \
+            zlib1g-dev libncurses5-dev libtinfo6 \
+            cmake libffi-dev libssl-dev automake \
+            autopoint gettext libltdl-dev
 
-  - name: Set up Python
-    uses: actions/setup-python@v5
-    with:
-      python-version: "3.11"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-  - name: Install Buildozer and pinned python-for-android
-    run: |
-      python -m pip install --upgrade pip
-      pip install "cython<3.4"
-      pip install buildozer
-      pip install "python-for-android==2026.05.09"
+      - name: Install Buildozer and pinned python-for-android
+        run: |
+          python -m pip install --upgrade pip
+          pip install "cython<3.4"
+          pip install buildozer
+          pip install "python-for-android==2026.05.09"
 
-  - name: Verify versions
-    run: |
-      python --version
-      buildozer --version
-      python -m pythonforandroid.toolchain --version || true
+      - name: Verify versions
+        run: |
+          python --version
+          buildozer --version
+          python -m pythonforandroid.toolchain --version || true
 
-  - name: Clean previous Buildozer files
-    run: |
-      rm -rf .buildozer
-      rm -rf bin
+      - name: Clean previous Buildozer files
+        run: |
+          rm -rf .buildozer
+          rm -rf bin
 
-  - name: Build APK
-    run: |
-      buildozer android debug
+      - name: Build APK
+        run: |
+          buildozer android debug
 
-  - name: Upload APK
-    uses: actions/upload-artifact@v4
-    with:
-      name: SAMI-APK
-      path: bin/*.apk
-      if-no-files-found: error
-
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SAMI-APK
+          path: bin/*.apk
+          if-no-files-found: error
+          
