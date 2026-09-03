@@ -35,7 +35,7 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           pip install "cython==0.29.36"
           pip install buildozer
-          pip install "python-for-android==2024.1.2"
+          pip install "python-for-android"
 
       - name: Verify versions
         run: |
