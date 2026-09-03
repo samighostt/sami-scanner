@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repository
@@ -56,9 +56,9 @@ jobs:
 
       - name: Build APK
         run: |
-          # إلغاء متغيرة البيئة الافتراضية لمنع الاعتماد على NDK r28c وإجبار استخدام NDK 25b
+          # إلغاء متغيرة البيئة الافتراضية لمنع الاعتماد على NDK المسبق وإجبار استخدام NDK 25b
           unset ANDROID_NDK_HOME ANDROID_NDK_ROOT ANDROID_NDK
-          buildozer android debug
+          buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
