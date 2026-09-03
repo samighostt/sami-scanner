@@ -48,13 +48,11 @@ SENSITIVE_PATHS = [
 
 
 class NoRedirectHandler(urllib.request.HTTPRedirectHandler):
-
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         return None
 
 
 class SamiButton(Button):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.background_normal = ""
@@ -65,7 +63,6 @@ class SamiButton(Button):
 
 
 class SamiAppLayout(BoxLayout):
-
     def __init__(self, **kwargs):
         super().__init__(
             orientation="vertical",
@@ -76,14 +73,14 @@ class SamiAppLayout(BoxLayout):
         self.scan_logs = []
 
         # الهيدر العلوي
-        header = BoxLayout(size_hint_y=None, height=dp(70), spacing=dp(10))
+        header = BoxLayout(size_hint_y=None, height=dp(60), spacing=dp(10))
         logo = Label(
-            text="[b]♛[/b]\n[b]S[/b]",
+            text="[b]S[/b]",
             markup=True,
-            font_size=dp(22),
+            font_size=dp(28),
             color=APP_GOLD,
             size_hint_x=None,
-            width=dp(50),
+            width=dp(40),
             halign="center",
             valign="middle",
         )
@@ -95,7 +92,7 @@ class SamiAppLayout(BoxLayout):
             Label(
                 text="[b]S A M I[/b]",
                 markup=True,
-                font_size=dp(22),
+                font_size=dp(20),
                 color=APP_GOLD,
                 halign="left",
                 valign="bottom",
@@ -133,11 +130,11 @@ class SamiAppLayout(BoxLayout):
         btn_box = BoxLayout(
             size_hint_y=None, height=dp(48), spacing=dp(8)
         )
-        self.scan_button = SamiButton(text="⌕  START AUDIT")
+        self.scan_button = SamiButton(text="START AUDIT")
         self.scan_button.bind(on_press=self.start_scan)
 
         self.save_button = SamiButton(
-            text="💾 SAVE REPORT", background_color=CARD_BG
+            text="SAVE REPORT", background_color=CARD_BG
         )
         self.save_button.color = TEXT
         self.save_button.bind(on_press=self.save_report)
@@ -161,7 +158,7 @@ class SamiAppLayout(BoxLayout):
         scroll = ScrollView()
         self.results = BoxLayout(
             orientation="vertical",
-            spacing=dp(5),
+            spacing=dp(6),
             size_hint_y=None,
             padding=[0, dp(4)],
         )
@@ -182,15 +179,19 @@ class SamiAppLayout(BoxLayout):
         self.scan_logs.append(text)
         label = Label(
             text=text,
-            markup=bold,
+            bold=bold,
             font_size=dp(12),
             color=color,
             size_hint_y=None,
-            height=dp(28),
             halign="left",
             valign="middle",
         )
         label.bind(size=lambda w, s: setattr(w, "text_size", (s[0], None)))
+        label.bind(
+            texture_size=lambda instance, value: setattr(
+                instance, "height", max(value[1] + dp(8), dp(26))
+            )
+        )
         self.results.add_widget(label)
 
     def clear_results(self):
@@ -265,6 +266,11 @@ class SamiAppLayout(BoxLayout):
                 "error": str(exc),
             }
 
+    def check_endpoint(self, base_url, path):
+        target = f"{base_url.rstrip('/')}/{path}"
+        res = self.fetch_http(target, timeout=5, allow_redirects=False)
+        return path, res["code"]
+
     def run_audit(self, target_url):
         main_res = self.fetch_http(target_url, timeout=8, allow_redirects=True)
         if main_res["error"]:
@@ -273,84 +279,89 @@ class SamiAppLayout(BoxLayout):
             )
             return
 
-        self.ui(self.render_report, main_res)
-
-    def check_endpoint(self, base_url, path):
-        target = f"{base_url.rstrip('/')}/{path}"
-        res = self.fetch_http(target, timeout=5, allow_redirects=False)
-        return path, res["code"]
-
-    def render_report(self, res):
-        headers_lower = {k.lower(): v for k, v in res["headers"].items()}
-
         # 1. Target Summary
-        self.add_result("━━━ TARGET SUMMARY ━━━", APP_GOLD, True)
-        self.add_result(f"URL: {res['url']}")
-        self.add_result(
-            f"Status Code: {res['code']} | Time: {res['elapsed']:.2f}s"
+        self.ui(self.add_result, "=== TARGET SUMMARY ===", APP_GOLD, True)
+        self.ui(self.add_result, f"URL: {main_res['url']}")
+        self.ui(
+            self.add_result,
+            f"Status Code: {main_res['code']} | Time: {main_res['elapsed']:.2f}s",
         )
-        is_https = res["url"].startswith("https://")
-        self.add_result(
-            "✓ HTTPS Encryption Enabled"
+        is_https = main_res["url"].startswith("https://")
+        self.ui(
+            self.add_result,
+            "[+] HTTPS Encryption Enabled"
             if is_https
-            else "✕ HTTP Protocol Used (Insecure)",
+            else "[-] HTTP Protocol Used (Insecure)",
             GOOD if is_https else BAD,
         )
 
         # 2. Security Headers Audit
-        self.add_result("\n━━━ HARDENING & HEADERS ━━━", APP_GOLD, True)
+        headers_lower = {k.lower(): v for k, v in main_res["headers"].items()}
+        self.ui(self.add_result, "\n=== HARDENING & HEADERS ===", APP_GOLD, True)
         for header, desc in SECURITY_HEADERS.items():
             if header.lower() in headers_lower:
-                self.add_result(f"✓ {header} : PRESENT", GOOD)
+                self.ui(self.add_result, f"[+] {header} : PRESENT", GOOD)
             else:
-                self.add_result(f"✕ {header} : MISSING", BAD)
+                self.ui(self.add_result, f"[-] {header} : MISSING", BAD)
 
         # 3. Information Disclosure & Technology Leak
-        self.add_result("\n━━━ TECH & CORS AUDIT ━━━", APP_GOLD, True)
+        self.ui(self.add_result, "\n=== TECH & CORS AUDIT ===", APP_GOLD, True)
         server = headers_lower.get("server")
         powered = headers_lower.get("x-powered-by")
         cors = headers_lower.get("access-control-allow-origin")
 
         if server:
-            self.add_result(f"⚠ Server Exposed: {server}", WARN)
+            self.ui(self.add_result, f"[!] Server Exposed: {server}", WARN)
         else:
-            self.add_result("✓ Server Banner Hidden", GOOD)
+            self.ui(self.add_result, "[+] Server Banner Hidden", GOOD)
 
         if powered:
-            self.add_result(f"⚠ Technology Leak: {powered}", BAD)
+            self.ui(self.add_result, f"[-] Technology Leak: {powered}", BAD)
 
         if cors == "*":
-            self.add_result("⚠ Wildcard CORS (*): High Exposure", BAD)
+            self.ui(self.add_result, "[!] Wildcard CORS (*): High Exposure", BAD)
         elif cors:
-            self.add_result(f"✓ CORS Restricted: {cors}", GOOD)
+            self.ui(self.add_result, f"[+] CORS Restricted: {cors}", GOOD)
         else:
-            self.add_result("ℹ CORS Header Not Present", MUTED)
+            self.ui(self.add_result, "[*] CORS Header Not Present", MUTED)
 
         # 4. Cookie Security Analysis
-        self.add_result("\n━━━ COOKIE FLAGS AUDIT ━━━", APP_GOLD, True)
-        cookie_header = res["headers"].get("Set-Cookie")
+        self.ui(self.add_result, "\n=== COOKIE FLAGS AUDIT ===", APP_GOLD, True)
+        cookie_header = main_res["headers"].get("Set-Cookie")
         if cookie_header:
             cookie_str = str(cookie_header).lower()
             if "httponly" in cookie_str:
-                self.add_result("✓ Cookie Flag: HttpOnly Set", GOOD)
+                self.ui(self.add_result, "[+] Cookie Flag: HttpOnly Set", GOOD)
             else:
-                self.add_result("✕ Cookie Flag: HttpOnly Missing (XSS Risk)", BAD)
+                self.ui(
+                    self.add_result,
+                    "[-] Cookie Flag: HttpOnly Missing (XSS Risk)",
+                    BAD,
+                )
 
             if "secure" in cookie_str:
-                self.add_result("✓ Cookie Flag: Secure Set", GOOD)
+                self.ui(self.add_result, "[+] Cookie Flag: Secure Set", GOOD)
             else:
-                self.add_result("✕ Cookie Flag: Secure Missing", BAD)
+                self.ui(self.add_result, "[-] Cookie Flag: Secure Missing", BAD)
 
             if "samesite" in cookie_str:
-                self.add_result("✓ Cookie Flag: SameSite Configured", GOOD)
+                self.ui(
+                    self.add_result, "[+] Cookie Flag: SameSite Configured", GOOD
+                )
             else:
-                self.add_result("⚠ Cookie Flag: SameSite Missing", WARN)
+                self.ui(
+                    self.add_result, "[!] Cookie Flag: SameSite Missing", WARN
+                )
         else:
-            self.add_result("ℹ No Set-Cookie headers detected", MUTED)
+            self.ui(
+                self.add_result, "[*] No Set-Cookie headers detected", MUTED
+            )
 
-        # 5. Parallel Endpoint Recon
-        self.add_result("\n━━━ SENSITIVE PATHS CHECK ━━━", APP_GOLD, True)
-        base = res["url"]
+        # 5. Parallel Endpoint Recon (خلفي لتجنب تجميد الواجهة)
+        self.ui(
+            self.add_result, "\n=== SENSITIVE PATHS CHECK ===", APP_GOLD, True
+        )
+        base = main_res["url"]
 
         with ThreadPoolExecutor(max_workers=4) as executor:
             futures = [
@@ -360,20 +371,27 @@ class SamiAppLayout(BoxLayout):
             for future in futures:
                 path, code = future.result()
                 if code and code < 400:
-                    self.add_result(f"⚠ [HTTP {code}] /{path} ACCESSIBLE", BAD)
+                    self.ui(
+                        self.add_result,
+                        f"[!] [HTTP {code}] /{path} ACCESSIBLE",
+                        BAD,
+                    )
                 elif code:
-                    self.add_result(f"✓ [HTTP {code}] /{path}", GOOD)
+                    self.ui(self.add_result, f"[+] [HTTP {code}] /{path}", GOOD)
                 else:
-                    self.add_result(f"✕ [ERR] /{path}", MUTED)
+                    self.ui(self.add_result, f"[-] [ERR] /{path}", MUTED)
 
-        self.status.text = "Audit completed successfully."
-        self.status.color = GOOD
-        self.scan_button.disabled = False
-        self.save_button.disabled = False
+        def complete_ui():
+            self.status.text = "Audit completed successfully."
+            self.status.color = GOOD
+            self.scan_button.disabled = False
+            self.save_button.disabled = False
+
+        self.ui(complete_ui)
 
     def finish_error(self, message):
         self.clear_results()
-        self.add_result("✕ " + message, BAD)
+        self.add_result("[-] " + message, BAD)
         self.status.text = "Audit failed."
         self.status.color = BAD
         self.scan_button.disabled = False
@@ -381,10 +399,14 @@ class SamiAppLayout(BoxLayout):
     def save_report(self, *_):
         try:
             report_text = "\n".join(self.scan_logs)
-            file_name = "sami_security_report.txt"
-            with open(file_name, "w", encoding="utf-8") as f:
+            app = App.get_running_app()
+            save_dir = app.user_data_dir if app else "."
+            file_path = os.path.join(save_dir, "sami_security_report.txt")
+
+            with open(file_path, "w", encoding="utf-8") as f:
                 f.write(report_text)
-            self.status.text = f"Saved: {file_name}"
+
+            self.status.text = f"Saved to app storage"
             self.status.color = GOOD
         except Exception as e:
             self.status.text = f"Save failed: {e}"
