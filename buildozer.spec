@@ -7,7 +7,7 @@ source.include_exts = py,png,jpg,kv,atlas
 version = 1.0.0
 
 # تم إزالة requests للاعتصام بمكتبة urllib المدمجة وتجنب فشل التجميع
-requirements = python3==3.11.9,kivy,openssl
+requirements = python3,kivy,openssl
 
 orientation = portrait
 fullscreen = 0
