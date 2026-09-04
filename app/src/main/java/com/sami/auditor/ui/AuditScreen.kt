@@ -1,16 +1,10 @@
 package com.sami.auditor.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,40 +18,23 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.BugReport
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Https
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
@@ -69,35 +46,38 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sami.auditor.R
 import com.sami.auditor.data.model.AuditLogEntry
 import com.sami.auditor.data.model.AuditReport
-import com.sami.auditor.data.model.CookieFinding
 import com.sami.auditor.data.model.LogSeverity
-import com.sami.auditor.data.model.PathProbeResult
 import com.sami.auditor.data.model.ScanStatus
-import com.sami.auditor.data.model.SecurityHeaderItem
-import com.sami.auditor.data.model.TechCorsFinding
+import com.sami.auditor.ui.components.ActionControlsRow
+import com.sami.auditor.ui.components.AppHeader
+import com.sami.auditor.ui.components.DashboardView
+import com.sami.auditor.ui.components.ExportReportDialog
+import com.sami.auditor.ui.components.MonitoringView
+import com.sami.auditor.ui.components.RemediationDialog
+import com.sami.auditor.ui.components.SampleUrlChips
+import com.sami.auditor.ui.components.SslAndPathsView
+import com.sami.auditor.ui.components.StatusBanner
+import com.sami.auditor.ui.components.UrlInputField
+import com.sami.auditor.ui.components.VulnerabilitiesView
 import com.sami.auditor.ui.theme.SamiBackground
 import com.sami.auditor.ui.theme.SamiBad
 import com.sami.auditor.ui.theme.SamiCardBg
 import com.sami.auditor.ui.theme.SamiCardBorder
-import com.sami.auditor.ui.theme.SamiCardElevated
 import com.sami.auditor.ui.theme.SamiGold
 import com.sami.auditor.ui.theme.SamiGood
-import com.sami.auditor.ui.theme.SamiInfo
 import com.sami.auditor.ui.theme.SamiMuted
 import com.sami.auditor.ui.theme.SamiText
 import com.sami.auditor.ui.theme.SamiWarn
@@ -133,11 +113,11 @@ fun AuditScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(SamiBackground)
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 6.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = stringResource(R.string.footer_notice),
+                    text = "SAMI Cybersecurity Auditor • للمراجعة الأمنية الأخلاقية فقط",
                     color = SamiMuted,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Medium
@@ -149,14 +129,17 @@ fun AuditScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(horizontal = 14.dp, vertical = 6.dp)
         ) {
-            // Header
-            AppHeader()
+            // Header with Cyber Emblem and Export button
+            AppHeader(
+                hasReport = uiState.report != null,
+                onOpenExport = { viewModel.toggleExportDialog(true) }
+            )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // URL Input Field
+            // URL input box
             UrlInputField(
                 url = uiState.urlInput,
                 onUrlChange = { viewModel.onUrlChanged(it) },
@@ -168,34 +151,34 @@ fun AuditScreen(
                 isScanning = uiState.scanStatus == ScanStatus.SCANNING
             )
 
-            // Preset suggestions
+            // Preset fast sample chips
             SampleUrlChips(
-                onSelectUrl = { selected ->
-                    viewModel.onUrlChanged(selected)
+                onSelectUrl = { sample ->
+                    viewModel.onUrlChanged(sample)
+                    viewModel.startAudit(sample)
                 },
                 enabled = uiState.scanStatus != ScanStatus.SCANNING
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
-            // Action Buttons (Start Audit, Save, Share)
+            // Action controls (Start, Cancel, Export, Copy, Clear)
             ActionControlsRow(
                 isScanning = uiState.scanStatus == ScanStatus.SCANNING,
-                hasResults = uiState.logs.isNotEmpty(),
+                hasResults = uiState.report != null,
                 onStartScan = {
                     keyboardController?.hide()
                     viewModel.startAudit()
                 },
                 onCancelScan = { viewModel.cancelAudit() },
-                onSaveReport = { viewModel.saveReport(context) },
-                onShareReport = { viewModel.shareReport(context) },
+                onOpenExport = { viewModel.toggleExportDialog(true) },
                 onCopyReport = { viewModel.copyReportToClipboard(context) },
                 onClear = { viewModel.clearResults() }
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // Status Indicator Banner
+            // Live Status Banner
             StatusBanner(
                 statusText = uiState.statusText,
                 severity = uiState.statusSeverity,
@@ -204,467 +187,189 @@ fun AuditScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Navigation Tabs (Findings vs Console Log)
-            TabRow(
-                selectedTabIndex = uiState.selectedTab,
-                containerColor = SamiCardBg,
-                contentColor = SamiGold,
-                indicator = { tabPositions ->
-                    TabRowDefaults.SecondaryIndicator(
-                        modifier = Modifier.tabIndicatorOffset(tabPositions[uiState.selectedTab]),
-                        color = SamiGold
-                    )
-                },
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .border(1.dp, SamiCardBorder, RoundedCornerShape(8.dp))
-            ) {
-                Tab(
-                    selected = uiState.selectedTab == 0,
-                    onClick = { viewModel.setSelectedTab(0) },
-                    text = {
-                        Text(
-                            text = "SECURITY FINDINGS",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp,
-                            color = if (uiState.selectedTab == 0) SamiGold else SamiMuted
-                        )
-                    },
-                    modifier = Modifier.testTag("tab_findings")
-                )
-                Tab(
-                    selected = uiState.selectedTab == 1,
-                    onClick = { viewModel.setSelectedTab(1) },
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "CONSOLE LOG",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp,
-                                color = if (uiState.selectedTab == 1) SamiGold else SamiMuted
-                            )
-                            if (uiState.logs.isNotEmpty()) {
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .background(SamiCardElevated, CircleShape)
-                                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                                ) {
-                                    Text(
-                                        text = "${uiState.logs.size}",
-                                        fontSize = 10.sp,
-                                        color = SamiGold
-                                    )
-                                }
-                            }
-                        }
-                    },
-                    modifier = Modifier.testTag("tab_console")
-                )
-            }
+            // Navigation Tabs (Scan, Vulns, SSL & Paths, Dashboard, Monitoring, Console)
+            AuditTabs(
+                selectedTab = uiState.selectedTab,
+                onSelectTab = { viewModel.setSelectedTab(it) },
+                vulnCount = uiState.report?.vulnerabilities?.size ?: 0,
+                logCount = uiState.logs.size
+            )
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Main Content Area based on selected tab
+            // Main Tab Content Area
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                if (uiState.selectedTab == 0) {
-                    FindingsView(
+                when (uiState.selectedTab) {
+                    0 -> ScanSummaryView(
                         report = uiState.report,
                         isScanning = uiState.scanStatus == ScanStatus.SCANNING,
-                        hasLogs = uiState.logs.isNotEmpty()
+                        onViewVulns = { viewModel.setSelectedTab(1) },
+                        onViewSsl = { viewModel.setSelectedTab(2) }
                     )
-                } else {
-                    ConsoleLogView(logs = uiState.logs)
+                    1 -> VulnerabilitiesView(
+                        report = uiState.report,
+                        selectedSeverity = uiState.selectedSeverityFilter,
+                        onSelectSeverity = { viewModel.setSeverityFilter(it) },
+                        onOpenRemediation = { viewModel.openRemediationDialog(it) }
+                    )
+                    2 -> SslAndPathsView(report = uiState.report)
+                    3 -> DashboardView(
+                        history = uiState.history,
+                        onReScan = { url ->
+                            viewModel.setSelectedTab(0)
+                            viewModel.startAudit(url)
+                        },
+                        onClearHistory = { viewModel.clearHistory() }
+                    )
+                    4 -> MonitoringView(
+                        monitoredSites = uiState.monitoredSites,
+                        onAddSite = { url, interval -> viewModel.addMonitoredSite(url, interval) },
+                        onRemoveSite = { id -> viewModel.removeMonitoredSite(id) },
+                        onCheckSiteNow = { site -> viewModel.checkMonitoredSiteNow(site) }
+                    )
+                    5 -> ConsoleLogView(logs = uiState.logs)
                 }
             }
         }
     }
-}
 
-@Composable
-private fun AppHeader() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Professional Cyber Emblem Logo
-        Box(
-            modifier = Modifier
-                .size(46.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(SamiCardBg)
-                .border(1.5.dp, SamiGold, RoundedCornerShape(10.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_sami_cyber),
-                contentDescription = "SAMI Security Emblem",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(10.dp))
-            )
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Column {
-            Text(
-                text = "S A M I",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 2.sp,
-                color = SamiGold
-            )
-            Text(
-                text = "ADVANCED SECURITY AUDITOR",
-                fontSize = 10.sp,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 1.sp,
-                color = SamiMuted
-            )
-        }
-    }
-}
-
-@Composable
-private fun UrlInputField(
-    url: String,
-    onUrlChange: (String) -> Unit,
-    onClear: () -> Unit,
-    onScan: () -> Unit,
-    isScanning: Boolean
-) {
-    OutlinedTextField(
-        value = url,
-        onValueChange = onUrlChange,
-        placeholder = {
-            Text(
-                text = stringResource(R.string.url_hint),
-                color = SamiMuted,
-                fontSize = 13.sp
-            )
-        },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Security,
-                contentDescription = "Security Target",
-                tint = SamiGold,
-                modifier = Modifier.size(20.dp)
-            )
-        },
-        trailingIcon = {
-            if (url.isNotEmpty() && !isScanning) {
-                IconButton(
-                    onClick = onClear,
-                    modifier = Modifier.testTag("clear_url_button")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Clear,
-                        contentDescription = "Clear URL",
-                        tint = SamiMuted
-                    )
-                }
+    // Export Dialog
+    if (uiState.showExportDialog) {
+        ExportReportDialog(
+            onDismiss = { viewModel.toggleExportDialog(false) },
+            onSelectFormat = { format ->
+                viewModel.exportReport(context, format)
             }
-        },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Uri,
-            imeAction = ImeAction.Go
-        ),
-        keyboardActions = KeyboardActions(
-            onGo = { onScan() }
-        ),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = SamiCardBg,
-            unfocusedContainerColor = SamiCardBg,
-            focusedTextColor = SamiText,
-            unfocusedTextColor = SamiText,
-            focusedBorderColor = SamiGold,
-            unfocusedBorderColor = SamiCardBorder
-        ),
-        shape = RoundedCornerShape(10.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag("url_input_field")
-    )
-}
-
-@Composable
-private fun SampleUrlChips(
-    onSelectUrl: (String) -> Unit,
-    enabled: Boolean
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 6.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        val samples = listOf("example.com", "owasp.org", "google.com")
-        Text(
-            text = "Presets:",
-            color = SamiMuted,
-            fontSize = 11.sp,
-            modifier = Modifier.align(Alignment.CenterVertically)
         )
-        samples.forEach { sample ->
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(SamiCardElevated)
-                    .border(0.8.dp, SamiCardBorder, RoundedCornerShape(6.dp))
-                    .clickable(enabled = enabled) { onSelectUrl(sample) }
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = sample,
-                    color = SamiGold,
-                    fontSize = 11.sp,
-                    fontFamily = FontFamily.Monospace
-                )
+    }
+
+    // Remediation Dialog
+    uiState.selectedFindingForRemediation?.let { finding ->
+        RemediationDialog(
+            finding = finding,
+            onDismiss = { viewModel.dismissRemediationDialog() },
+            onCopySnippet = { snippet ->
+                viewModel.copySnippetToClipboard(context, snippet)
             }
-        }
+        )
     }
 }
 
 @Composable
-private fun ActionControlsRow(
-    isScanning: Boolean,
-    hasResults: Boolean,
-    onStartScan: () -> Unit,
-    onCancelScan: () -> Unit,
-    onSaveReport: () -> Unit,
-    onShareReport: () -> Unit,
-    onCopyReport: () -> Unit,
-    onClear: () -> Unit
+private fun AuditTabs(
+    selectedTab: Int,
+    onSelectTab: (Int) -> Unit,
+    vulnCount: Int,
+    logCount: Int
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Main Action Button (START AUDIT / STOP)
-            if (isScanning) {
-                Button(
-                    onClick = onCancelScan,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = SamiBad,
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                        .testTag("stop_button")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Stop,
-                        contentDescription = "Stop",
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = stringResource(R.string.stop_audit),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp
-                    )
-                }
-            } else {
-                Button(
-                    onClick = onStartScan,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = SamiGold,
-                        contentColor = Color(0xFF090E13)
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                        .testTag("start_button")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Security,
-                        contentDescription = "Start",
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = stringResource(R.string.start_audit),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp
-                    )
-                }
-            }
+    val tabs = listOf(
+        TabData("الفحص", Icons.Default.Security, null),
+        TabData("الثغرات", Icons.Default.BugReport, if (vulnCount > 0) "$vulnCount" else null),
+        TabData("SSL والمسارات", Icons.Default.Https, null),
+        TabData("لوحة التحكم", Icons.Default.BarChart, null),
+        TabData("المراقبة", Icons.Default.Schedule, null),
+        TabData("السجل", Icons.Default.Code, if (logCount > 0) "$logCount" else null)
+    )
 
-            // Save Report Button
-            Button(
-                onClick = onSaveReport,
-                enabled = hasResults && !isScanning,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = SamiCardBg,
-                    contentColor = SamiText,
-                    disabledContainerColor = SamiCardBg.copy(alpha = 0.5f),
-                    disabledContentColor = SamiMuted.copy(alpha = 0.4f)
-                ),
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp)
-                    .border(1.dp, if (hasResults && !isScanning) SamiGold else SamiCardBorder, RoundedCornerShape(8.dp))
-                    .testTag("save_button")
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Save,
-                    contentDescription = "Save Report",
-                    modifier = Modifier.size(16.dp),
-                    tint = if (hasResults && !isScanning) SamiGold else SamiMuted
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = stringResource(R.string.save_report),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp
-                )
-            }
-        }
-
-        // Secondary actions (Share, Copy, Clear) when results exist
-        if (hasResults && !isScanning) {
-            Spacer(modifier = Modifier.height(6.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedButton(
-                    onClick = onShareReport,
-                    shape = RoundedCornerShape(6.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = SamiGold),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(36.dp)
-                        .testTag("share_button")
-                ) {
-                    Icon(Icons.Default.Share, contentDescription = "Share", modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Share", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                }
-
-                OutlinedButton(
-                    onClick = onCopyReport,
-                    shape = RoundedCornerShape(6.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = SamiText),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(36.dp)
-                        .testTag("copy_button")
-                ) {
-                    Icon(Icons.Default.ContentCopy, contentDescription = "Copy", modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Copy", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                }
-
-                OutlinedButton(
-                    onClick = onClear,
-                    shape = RoundedCornerShape(6.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = SamiMuted),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(36.dp)
-                        .testTag("clear_button")
-                ) {
-                    Icon(Icons.Default.Clear, contentDescription = "Clear", modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Clear", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun StatusBanner(
-    statusText: String,
-    severity: LogSeverity,
-    isScanning: Boolean
-) {
-    val statusColor = when (severity) {
-        LogSeverity.GOOD -> SamiGood
-        LogSeverity.BAD -> SamiBad
-        LogSeverity.WARN -> SamiWarn
-        LogSeverity.HEADER -> SamiGold
-        LogSeverity.INFO -> SamiMuted
-    }
-
-    Column(
+    ScrollableTabRow(
+        selectedTabIndex = selectedTab,
+        containerColor = SamiCardBg,
+        contentColor = SamiGold,
+        edgePadding = 4.dp,
+        indicator = { tabPositions ->
+            TabRowDefaults.SecondaryIndicator(
+                Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                color = SamiGold,
+                height = 2.dp
+            )
+        },
+        divider = { HorizontalDivider(color = SamiCardBorder, thickness = 1.dp) },
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .background(SamiCardBg)
             .border(1.dp, SamiCardBorder, RoundedCornerShape(8.dp))
-            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(statusColor)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = statusText,
-                color = statusColor,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        if (isScanning) {
-            Spacer(modifier = Modifier.height(8.dp))
-            LinearProgressIndicator(
-                color = SamiGold,
-                trackColor = SamiCardElevated,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(3.dp)
-                    .clip(RoundedCornerShape(2.dp))
+        tabs.forEachIndexed { index, tab ->
+            Tab(
+                selected = selectedTab == index,
+                onClick = { onSelectTab(index) },
+                text = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = tab.icon,
+                            contentDescription = null,
+                            tint = if (selectedTab == index) SamiGold else SamiMuted,
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            text = tab.title,
+                            fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Medium,
+                            fontSize = 11.sp,
+                            color = if (selectedTab == index) SamiGold else SamiMuted
+                        )
+                        if (tab.badge != null) {
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(if (index == 1) SamiBad else SamiCardBorder)
+                                    .padding(horizontal = 5.dp, vertical = 1.dp)
+                            ) {
+                                Text(
+                                    text = tab.badge,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
+                },
+                modifier = Modifier.testTag("tab_$index")
             )
         }
     }
 }
 
+private data class TabData(
+    val title: String,
+    val icon: ImageVector,
+    val badge: String?
+)
+
 @Composable
-private fun FindingsView(
+private fun ScanSummaryView(
     report: AuditReport?,
     isScanning: Boolean,
-    hasLogs: Boolean
+    onViewVulns: () -> Unit,
+    onViewSsl: () -> Unit
 ) {
     if (report == null) {
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
             contentAlignment = Alignment.Center
         ) {
             if (isScanning) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Analyzing security posture...",
+                        text = "جاري الفحص المتقدم واكتشاف الثغرات...",
                         color = SamiGold,
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Probing headers, certificates & endpoints",
+                        text = "يتم الآن فحص OWASP Top 10 و SSL و المسارات وتحديد الطلبات",
                         color = SamiMuted,
                         fontSize = 12.sp
                     )
@@ -672,7 +377,7 @@ private fun FindingsView(
             } else {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(24.dp)
+                    modifier = Modifier.padding(20.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Security,
@@ -682,15 +387,10 @@ private fun FindingsView(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "No audit report yet",
+                        text = "أدخل رابط الموقع واضغط 'بدء الفحص الأمني'",
                         color = SamiMuted,
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = "Enter a URL above and tap START AUDIT",
-                        color = SamiMuted.copy(alpha = 0.7f),
-                        fontSize = 12.sp
                     )
                 }
             }
@@ -700,43 +400,79 @@ private fun FindingsView(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(bottom = 16.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // Score & Posture Summary Card
+        // Main Security Score Banner
         item {
-            ScoreCard(report = report)
+            ScoreBanner(report = report)
         }
 
-        // Target Info Card
+        // Target Resolved Info
         item {
-            TargetSummaryCard(target = report.target)
+            Card(
+                shape = RoundedCornerShape(10.dp),
+                colors = CardDefaults.cardColors(containerColor = SamiCardBg),
+                border = CardDefaults.outlinedCardBorder().copy(
+                    brush = androidx.compose.ui.graphics.SolidColor(SamiCardBorder)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text(
+                        text = "تفاصيل الهدف (Target Details)",
+                        color = SamiGold,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    SummaryRow("الرابط المدخل", report.target.requestedUrl)
+                    SummaryRow("الرابط النهائي", report.target.finalUrl)
+                    SummaryRow("رمز الاستجابة", "HTTP ${report.target.responseCode ?: "N/A"}")
+                    SummaryRow("زمن الاستجابة", "${String.format("%.2f", report.target.elapsedTimeSeconds)} ثانية")
+                    SummaryRow("تشفير HTTPS", if (report.target.isHttps) "مفعل وآمن" else "معطل (غير آمن)", if (report.target.isHttps) SamiGood else SamiBad)
+                }
+            }
         }
 
-        // Hardening & Security Headers
+        // Executive Breakdown Highlights
         item {
-            HeadersCard(headers = report.securityHeaders)
+            Card(
+                shape = RoundedCornerShape(10.dp),
+                colors = CardDefaults.cardColors(containerColor = SamiCardBg),
+                border = CardDefaults.outlinedCardBorder().copy(
+                    brush = androidx.compose.ui.graphics.SolidColor(SamiCardBorder)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text(
+                        text = "ملخص الفحص الأمني",
+                        color = SamiGold,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        ScoreStatChip("ثغرات مكتشفة", "${report.vulnerabilities.size}", if (report.vulnerabilities.isNotEmpty()) SamiBad else SamiGood)
+                        ScoreStatChip("شهادة SSL", if (report.sslInfo.isHttps) "صالحة" else "مفقودة", if (report.sslInfo.isHttps) SamiGood else SamiBad)
+                        ScoreStatChip("مسارات مكشوفة", "${report.sensitivePaths.count { it.isAccessible }}", if (report.sensitivePaths.any { it.isAccessible }) SamiBad else SamiGood)
+                    }
+                }
+            }
         }
 
-        // Tech & CORS Analysis
         item {
-            TechCorsCard(techCors = report.techCors)
-        }
-
-        // Cookie Flags Audit
-        item {
-            CookiesCard(cookies = report.cookies)
-        }
-
-        // Sensitive Paths Recon
-        item {
-            SensitivePathsCard(paths = report.sensitivePaths)
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
-private fun ScoreCard(report: AuditReport) {
+private fun ScoreBanner(report: AuditReport) {
     val score = report.score
     val (grade, gradeColor) = when {
         score >= 85 -> "A" to SamiGood
@@ -745,22 +481,21 @@ private fun ScoreCard(report: AuditReport) {
         else -> "F" to SamiBad
     }
 
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = SamiCardBg),
-        border = CardDefaults.outlinedCardBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(SamiCardBorder)),
-        modifier = Modifier.fillMaxWidth()
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(SamiCardBg)
+            .border(1.dp, SamiCardBorder, RoundedCornerShape(10.dp))
+            .padding(14.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Grade Circle
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(54.dp)
                     .clip(CircleShape)
                     .background(gradeColor.copy(alpha = 0.15f))
                     .border(2.dp, gradeColor, CircleShape),
@@ -768,7 +503,7 @@ private fun ScoreCard(report: AuditReport) {
             ) {
                 Text(
                     text = grade,
-                    fontSize = 28.sp,
+                    fontSize = 26.sp,
                     fontWeight = FontWeight.Black,
                     color = gradeColor
                 )
@@ -778,16 +513,16 @@ private fun ScoreCard(report: AuditReport) {
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "SECURITY SCORE: $score/100",
+                    text = "درجة الأمان الإجمالية: $score/100",
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     color = SamiText
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ScoreBadge(label = "Passed", count = report.passedCount, color = SamiGood)
-                    ScoreBadge(label = "Warnings", count = report.warningCount, color = SamiWarn)
-                    ScoreBadge(label = "Critical", count = report.criticalCount, color = SamiBad)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    ScoreBadge(label = "ناجح", count = report.passedCount, color = SamiGood)
+                    ScoreBadge(label = "تحذير", count = report.warningCount, color = SamiWarn)
+                    ScoreBadge(label = "حرج", count = report.criticalCount, color = SamiBad)
                 }
             }
         }
@@ -820,256 +555,22 @@ private fun ScoreBadge(label: String, count: Int, color: Color) {
 }
 
 @Composable
-private fun TargetSummaryCard(target: com.sami.auditor.data.model.TargetSummary) {
-    Card(
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = SamiCardBg),
-        border = CardDefaults.outlinedCardBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(SamiCardBorder)),
-        modifier = Modifier.fillMaxWidth()
+private fun ScoreStatChip(title: String, value: String, color: Color) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(SamiBackground)
+            .border(1.dp, SamiCardBorder, RoundedCornerShape(8.dp))
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            SectionHeader(title = "TARGET SUMMARY", icon = Icons.Default.Security)
-            Spacer(modifier = Modifier.height(8.dp))
-            InfoRow("Target URL", target.requestedUrl)
-            InfoRow("Final Resolved URL", target.finalUrl)
-            InfoRow("HTTP Status Code", "${target.responseCode ?: "N/A"}")
-            InfoRow("Latency", "${String.format("%.2f", target.elapsedTimeSeconds)}s")
-            InfoRow(
-                "HTTPS Encryption",
-                if (target.isHttps) "Enabled (Secure)" else "Disabled (Insecure)",
-                valueColor = if (target.isHttps) SamiGood else SamiBad
-            )
-        }
+        Text(text = value, color = color, fontSize = 14.sp, fontWeight = FontWeight.Black)
+        Text(text = title, color = SamiMuted, fontSize = 10.sp)
     }
 }
 
 @Composable
-private fun HeadersCard(headers: List<SecurityHeaderItem>) {
-    Card(
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = SamiCardBg),
-        border = CardDefaults.outlinedCardBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(SamiCardBorder)),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            SectionHeader(title = "HARDENING & HEADERS", icon = Icons.Default.Lock)
-            Spacer(modifier = Modifier.height(8.dp))
-            headers.forEachIndexed { index, header ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Icon(
-                        imageVector = if (header.isPresent) Icons.Default.CheckCircle else Icons.Default.Close,
-                        contentDescription = if (header.isPresent) "Present" else "Missing",
-                        tint = if (header.isPresent) SamiGood else SamiBad,
-                        modifier = Modifier
-                            .size(18.dp)
-                            .padding(top = 2.dp)
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = header.name,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp,
-                                fontFamily = FontFamily.Monospace,
-                                color = SamiText
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = if (header.isPresent) "PRESENT" else "MISSING",
-                                fontWeight = FontWeight.ExtraBold,
-                                fontSize = 10.sp,
-                                color = if (header.isPresent) SamiGood else SamiBad
-                            )
-                        }
-                        Text(
-                            text = header.explanationEn,
-                            fontSize = 11.sp,
-                            color = SamiMuted
-                        )
-                        Text(
-                            text = header.explanationAr,
-                            fontSize = 11.sp,
-                            color = SamiGold.copy(alpha = 0.8f)
-                        )
-                        if (!header.rawValue.isNullOrBlank()) {
-                            Text(
-                                text = "Value: ${header.rawValue}",
-                                fontSize = 10.sp,
-                                fontFamily = FontFamily.Monospace,
-                                color = SamiInfo,
-                                modifier = Modifier.padding(top = 2.dp)
-                            )
-                        }
-                    }
-                }
-                if (index < headers.lastIndex) {
-                    HorizontalDivider(color = SamiCardBorder.copy(alpha = 0.5f), thickness = 0.5.dp)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TechCorsCard(techCors: TechCorsFinding) {
-    Card(
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = SamiCardBg),
-        border = CardDefaults.outlinedCardBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(SamiCardBorder)),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            SectionHeader(title = "TECH & CORS AUDIT", icon = Icons.Default.BugReport)
-            Spacer(modifier = Modifier.height(8.dp))
-
-            InfoRow(
-                "Server Banner",
-                if (!techCors.serverBanner.isNullOrBlank()) techCors.serverBanner else "Hidden (Safe)",
-                valueColor = if (!techCors.serverBanner.isNullOrBlank()) SamiWarn else SamiGood
-            )
-            InfoRow(
-                "Framework / X-Powered-By",
-                if (!techCors.xPoweredBy.isNullOrBlank()) "Leaked: ${techCors.xPoweredBy}" else "None Detected (Safe)",
-                valueColor = if (!techCors.xPoweredBy.isNullOrBlank()) SamiBad else SamiGood
-            )
-            InfoRow(
-                "CORS Policy",
-                when {
-                    techCors.isCorsWildcard -> "Wildcard (*) - High Exposure Risk"
-                    !techCors.corsHeader.isNullOrBlank() -> "Restricted (${techCors.corsHeader})"
-                    else -> "Not Specified"
-                },
-                valueColor = when {
-                    techCors.isCorsWildcard -> SamiBad
-                    !techCors.corsHeader.isNullOrBlank() -> SamiGood
-                    else -> SamiMuted
-                }
-            )
-        }
-    }
-}
-
-@Composable
-private fun CookiesCard(cookies: CookieFinding) {
-    Card(
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = SamiCardBg),
-        border = CardDefaults.outlinedCardBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(SamiCardBorder)),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            SectionHeader(title = "COOKIE FLAGS AUDIT", icon = Icons.Default.LockOpen)
-            Spacer(modifier = Modifier.height(8.dp))
-
-            if (!cookies.hasCookies) {
-                Text(
-                    text = "No Set-Cookie headers detected on initial response.",
-                    color = SamiMuted,
-                    fontSize = 12.sp
-                )
-            } else {
-                InfoRow("Cookies Detected", "${cookies.cookieCount}")
-                InfoRow(
-                    "HttpOnly Flag",
-                    if (cookies.httpOnlySet) "Set (Protected against XSS theft)" else "Missing (Risk of XSS Cookie Stealing)",
-                    valueColor = if (cookies.httpOnlySet) SamiGood else SamiBad
-                )
-                InfoRow(
-                    "Secure Flag",
-                    if (cookies.secureSet) "Set (HTTPS Only)" else "Missing (Transmitted over plain HTTP)",
-                    valueColor = if (cookies.secureSet) SamiGood else SamiBad
-                )
-                InfoRow(
-                    "SameSite Flag",
-                    if (cookies.sameSiteConfigured) "Configured (CSRF Mitigation)" else "Missing (CSRF Exposure)",
-                    valueColor = if (cookies.sameSiteConfigured) SamiGood else SamiWarn
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SensitivePathsCard(paths: List<PathProbeResult>) {
-    Card(
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = SamiCardBg),
-        border = CardDefaults.outlinedCardBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(SamiCardBorder)),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            SectionHeader(title = "SENSITIVE PATHS CHECK", icon = Icons.Default.Warning)
-            Spacer(modifier = Modifier.height(8.dp))
-
-            paths.forEachIndexed { index, probe ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val statusText = when {
-                        probe.isAccessible -> "[HTTP ${probe.statusCode}] ACCESSIBLE"
-                        probe.statusCode != null -> "[HTTP ${probe.statusCode}]"
-                        else -> "[ERR]"
-                    }
-                    val statusColor = when {
-                        probe.isAccessible -> SamiBad
-                        probe.statusCode != null -> SamiGood
-                        else -> SamiMuted
-                    }
-
-                    Text(
-                        text = "/${probe.path}",
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 12.sp,
-                        color = SamiText,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = statusText,
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
-                        color = statusColor
-                    )
-                }
-                if (index < paths.lastIndex) {
-                    HorizontalDivider(color = SamiCardBorder.copy(alpha = 0.5f), thickness = 0.5.dp)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SectionHeader(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = SamiGold,
-            modifier = Modifier.size(16.dp)
-        )
-        Spacer(modifier = Modifier.width(6.dp))
-        Text(
-            text = title,
-            fontWeight = FontWeight.Bold,
-            fontSize = 12.sp,
-            letterSpacing = 1.sp,
-            color = SamiGold
-        )
-    }
-}
-
-@Composable
-private fun InfoRow(
+private fun SummaryRow(
     label: String,
     value: String,
     valueColor: Color = SamiText
@@ -1077,20 +578,17 @@ private fun InfoRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 3.dp),
+            .padding(vertical = 2.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            color = SamiMuted
-        )
+        Text(text = label, fontSize = 11.sp, color = SamiMuted)
         Text(
             text = value,
-            fontSize = 12.sp,
+            fontSize = 11.sp,
             fontWeight = FontWeight.Medium,
-            color = valueColor
+            color = valueColor,
+            fontFamily = FontFamily.Monospace
         )
     }
 }
@@ -1119,7 +617,7 @@ private fun ConsoleLogView(logs: List<AuditLogEntry>) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No console output. Start audit to stream results.",
+                    text = "لا توجد سجلات بعد. ابدأ الفحص لبث السجلات الحية.",
                     color = SamiMuted,
                     fontSize = 12.sp,
                     fontFamily = FontFamily.Monospace
