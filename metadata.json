@@ -1,0 +1,6 @@
+{
+  "name": "SAMI Auditor",
+  "description": "Advanced web security auditor and vulnerability scanner",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
